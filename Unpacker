@@ -1,0 +1,51 @@
+// Create a folder in the owner's inventory that will contain the all of the contents of the object containing this script.
+string folder_name = "Change Me";
+
+default
+{
+    state_entry()
+    {
+        string title = llGetScriptName();
+        llSetText(title + "\nTouch me to copy to inventory", <0.0, 1.0, 0.0>, 1.0);
+    }
+
+    touch_start(integer total_number)
+    {
+        state copying;
+    }
+}
+state copying
+{
+    state_entry()
+    {
+        llSetText("Copying", <0.0, 0.0, 1.0>, 1.0);
+        list inventory_items;
+        integer dupes = 0;
+        // Build the list
+        integer inventory_number = llGetInventoryNumber(INVENTORY_ALL);
+        integer index = 0;
+        for (; index < inventory_number; ++index) {
+            string item_name = llGetInventoryName(INVENTORY_ALL, index);
+            if (llGetInventoryPermMask(item_name, MASK_OWNER) & PERM_COPY) {
+                if (item_name != llGetScriptName()) {
+                    inventory_items += item_name;
+                }
+            }
+        }
+        // Then do the copying
+        if (llGetListLength(inventory_items) > 0) {
+            llGiveInventoryList(llGetOwner(), folder_name, inventory_items);
+            llOwnerSay("Copied " + (string)llGetListLength(inventory_items) + " items to folder: " + folder_name + ".");
+        } else {
+            llOwnerSay("No items found. Did you already copy them?");
+        }
+        state done;
+    }
+}
+state done
+{
+    state_entry()
+    {
+        llSetText("Copy Complete.\nYou may now delete this box.", <1.0, 1.0, 1.0>, 1.0);
+    }
+}
